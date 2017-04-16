@@ -1,9 +1,9 @@
 class Igra:
-    def __init__(self, igrac1, igrac2):
+    def __init__(self):
         self._slobodno_polje = 'X'
         self._tabla = [self._slobodno_polje for i in range(24)]
-        self._igrac1 = igrac1
-        self._igrac2 = igrac2
+        self._igrac1 = None
+        self._igrac2 = None
         self._pobednik = None
 
     # Metoda trazi preostala slobodna mesta na tabli i vraca listu indeksima polja
@@ -17,7 +17,8 @@ class Igra:
 
     # Provera da li pozicija postoji i da li je slobodna
     def _proveri_poziciju(self, pozicija):
-        if (not 0 <= pozicija <= 24) or (self._tabla[pozicija] != self._slobodno_polje):
+        if (not 0 <= pozicija < 24) or (self._tabla[pozicija] != self._slobodno_polje):
+        #if not pozicija in self.nadji_slobodna_polja():
             return False
         
         return True
@@ -76,22 +77,44 @@ class Igra:
         return False
 
     # FAZA 1: Odavde pocinje igra. Postavljanje figura. Ova faza traje maksimalno 18 poteza.
-    def postavi_figure(self):
+    def postavi_figure(self, igrac1, igrac2):
+        self._igrac1 = igrac1
+        self._igrac2 = igrac2
+
+        self.nacrtaj_tablu()
+
         for potez in range(18):
+            if potez % 2 == 0: # Beli igrac je na potezu
+                self._igrac1.postavi_figuru()
+            else:              # Crni igrac je na potezu
+                self._igrac2.postavi_figuru()
+
             self.nacrtaj_tablu()
 
-            if potez % 2 == 0: # Beli igrac je na potezu
-                pass
-            else:              # Crni igrac je na potezu
-                pass
+        # TODO: poziv za FAZU 2
 
 class Covek:
-    def __init__(self, oznaka):
+    def __init__(self, oznaka, game_instance):
         self.oznaka = oznaka
         self.broj_figura = 9
+        self._game_instance = game_instance
 
     def postavi_figuru(self):
-        pass
+        while True:
+            try:
+                pozicija = int(input("\n[{}] unesite poziciju: ".format(self.oznaka)))
+            except ValueError:
+                print("Uneli ste pogresnu vrednost!")
+                continue
+
+            if pozicija == 50:  # Terminator programa
+                import sys
+                sys.exit()
+            
+            if self._game_instance.postavi_igraca(self.oznaka, pozicija):
+                break
+
+            print("Ne mozete zauzeti polje ", pozicija)
 
     def pomeri_figuru(self):
         pass
@@ -102,5 +125,8 @@ class Covek:
 if __name__ == "__main__":
     print("\n\n---===   MICE   ===---\n\n")
 
-    igra = Igra(None, None)
-    igra.nacrtaj_tablu()
+    igra = Igra()
+    igrac1 = Covek('W', igra)
+    igrac2 = Covek('B', igra)
+
+    igra.postavi_figure(igrac1, igrac2)

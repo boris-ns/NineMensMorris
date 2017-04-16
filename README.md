@@ -1,2 +1,2 @@
-# NineMensMorris
-AI that plays Nine Men's Morris.
+# Nine Men's Morris
+AI written in Python that plays Nine men's Morris
