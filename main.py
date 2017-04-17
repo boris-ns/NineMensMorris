@@ -30,9 +30,20 @@ class Igra:
         self._tabla[pozicija] = oznaka_igraca
         return True
 
-    # TODO: Pomeranje igraca
-    def pomeri_igraca(self, oznaka_igraca, pozicija):
-        pass
+    # Pomeranje igraca
+    # TODO: Naci sablon da se lakse prepozna da li se igrac sme kretati po odredjenoj putanji
+    def pomeri_igraca(self, oznaka_igraca, stara_pozicija, nova_pozicija):
+        uslov_pozicija = not self._proveri_poziciju(stara_pozicija) or not self._proveri_poziciju(nova_pozicija)
+        uslov_polje = self._tabla[stara_pozicija] != oznaka_igraca or self._tabla[nova_pozicija] != self._slobodno_polje
+
+        if uslov_pozicija or uslov_polje:
+             return False
+
+        # TODO provera za putanju
+
+        self._tabla[stara_pozicija] = self._slobodno_polje
+        self._tabla[nova_pozicija] = oznaka_igraca
+        return True
 
     # Uklanjanje figure sa table. oznaka_igraca je od igraca koji jede
     def ukloni_igraca(self, oznaka_igraca, pozicija):
@@ -72,8 +83,6 @@ class Igra:
                 print(j, end="")
             print()
 
-    
-    
     # Metoda za proveru da li je napravljena mica za prosledjenog igraca
     def proveri_micu(self, oznaka_igraca, poslednja_pozicija):
         moguce_mice = ((0,1,2),(3,4,5),(6,7,8),(9,10,11),(12,13,14),(15,16,17),(18,19,20),(21,22,23),
@@ -100,6 +109,14 @@ class Igra:
 
         return False
 
+    # Provera da li je neki od igaca ostao sa 3 figure. Tada je moguce skakanje za tog igraca.
+    # Ovo je i uslov za Fazu 3
+    def _proveri_mogucnost_skakanja(self):
+        if self._igrac1.broj_figura == 3 or self._igrac2.broj_figura == 3:
+            return True
+
+        return False
+
     # FAZA 1: Odavde pocinje igra. Postavljanje figura. Ova faza traje maksimalno 18 poteza.
     def postavi_figure(self, igrac1, igrac2):
         self._igrac1 = igrac1
@@ -112,7 +129,6 @@ class Igra:
                 pozicija = self._igrac1.postavi_figuru()
                 if self.proveri_micu(self._igrac1.oznaka, pozicija):
                     self._igrac1.pojedi_figuru()
-
             else:              # Crni igrac je na potezu
                 pozicija = self._igrac2.postavi_figuru()
                 if self.proveri_micu(self._igrac2.oznaka, pozicija):
@@ -120,11 +136,25 @@ class Igra:
 
             self.nacrtaj_tablu()
 
-        self.pomeraj_figure()
+        self.pomeraj_figure() # Pozivanje Faze 2
 
     # FAZA 2: 
     def pomeraj_figure(self):
-        pass
+        potez = 0
+        while not self._proveri_mogucnost_skakanja():
+            if potez % 2 == 0: # Beli igrac je na potezu
+                pozicija = self._igrac1.pomeri_figuru()
+                if self.proveri_micu(self._igrac1.oznaka, pozicija):
+                    self._igrac1.pojedi_figuru()
+            else:              # Crni igrac je na potezu
+                pozicija = self._igrac2.pomeri_figuru()
+                if self.proveri_micu(self._igrac2.oznaka, pozicija):
+                    self._igrac2.pojedi_figuru()
+
+            self.nacrtaj_tablu()
+            potez += 1
+
+        # TODO: poziv Faze 3
 
 class Covek:
     def __init__(self, oznaka, game_instance):
@@ -150,7 +180,18 @@ class Covek:
             print("Ne mozete zauzeti polje ", pozicija)
 
     def pomeri_figuru(self):
-        pass
+        while True:
+            try:
+                stara_pozicija = int(input("\n[{}] unesite poziciju figure koju zelite da pomerite: ".format(self.oznaka)))
+                nova_pozicija = int(input("[{}] unesite novu poziciju: ".format(self.oznaka)))
+            except ValueError:
+                print("Uneli ste pogresnu vrednost!")
+                continue
+            
+            if self._game_instance.pomeri_igraca(self.oznaka, stara_pozicija, nova_pozicija):
+                return nova_pozicija
+
+            print("Ne mozete pomeriti figuru na polje ", nova_pozicija)
 
     def pojedi_figuru(self):
         while True:
