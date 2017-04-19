@@ -137,21 +137,26 @@ class Igra:
 
     # Iscrtavanje table na ekran
     def nacrtaj_tablu(self):
-        # TODO: Probaj da ubacis i koordinate u ispis matrice, da korisnik ne mora napamet da trazi poziciju
         tabla = [
-            [self._tabla[0], '-','-','-','-','-', self._tabla[1], '-','-','-','-','-', self._tabla[2]],
-            ['|', ' ',' ',' ',' ',' ','|',' ',' ',' ',' ',' ','|'],
-            ['|', ' ', self._tabla[3], '-','-','-',self._tabla[4],'-''-''-',self._tabla[5],' ','|'],
-            ['|', ' ','|',' ',' ',' ','|',' ',' ',' ','|',' ','|'],
-            ['|',' ','|',' ', self._tabla[6],'-',self._tabla[7],'-', self._tabla[8],' ','|',' ','|'],
-            ['|',' ','|',' ','|',' ',' ',' ','|',' ','|',' ','|'],
-            [self._tabla[9],'-',self._tabla[10],'-', self._tabla[11],' ',' ',' ',self._tabla[12],'-',self._tabla[13],'-', self._tabla[14]],
-            ['|',' ','|',' ','|',' ',' ',' ','|',' ','|',' ','|'],
-            ['|',' ','|',' ', self._tabla[15],'-',self._tabla[16],'-', self._tabla[17],' ','|',' ','|'],
-            ['|', ' ','|',' ',' ',' ','|',' ',' ',' ','|',' ','|'],
-            ['|', ' ', self._tabla[18], '-','-','-',self._tabla[19],'-''-''-',self._tabla[20],' ','|'],
-            ['|', ' ',' ',' ',' ',' ','|',' ',' ',' ',' ',' ','|'],
-            [self._tabla[21], '-','-','-','-','-', self._tabla[22], '-','-','-','-','-', self._tabla[23]]
+            [self._tabla[0]+'00', '------------', self._tabla[1]+'01', '------------', self._tabla[2]+'02'],
+            [' |              |              |'],
+            [' |              |              |'],
+            [' |   ', self._tabla[3]+'03', '-------', self._tabla[4]+'04', '-------', self._tabla[5]+'05', '   |'],
+            [' |    |         |         |    |'],
+            [' |    |         |         |    |'],
+            [' |    |   ', self._tabla[6]+'06', '--', self._tabla[7]+'07', '--', self._tabla[8]+'08', '   |    |'],
+            [' |    |    |         |    |    |'],
+            [' |    |    |         |    |    |'],
+            [self._tabla[9]+'09', '--', self._tabla[10]+'10', '--', self._tabla[11]+'11', '       ', self._tabla[12]+'12', '--', self._tabla[13]+'13', '--', self._tabla[14]+'14'],
+            [' |    |    |         |    |    |'],
+            [' |    |    |         |    |    |'],
+            [' |    |   ', self._tabla[15]+'15', '--', self._tabla[16]+'16', '--', self._tabla[17]+'17', '   |    |'],
+            [' |    |         |         |    |'],
+            [' |    |         |         |    |'],
+            [' |   ', self._tabla[18]+'18', '-------', self._tabla[19]+'19', '-------', self._tabla[20]+'20', '   |'],
+            [' |              |              |'],
+            [' |              |              |'],
+            [self._tabla[21]+'21', '------------', self._tabla[22]+'22', '------------', self._tabla[23]+'23']
         ]
 
         for i in tabla:
