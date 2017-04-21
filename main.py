@@ -40,8 +40,8 @@ class Igra:
     # Metoda trazi preostala slobodna mesta na tabli i vraca listu indeksima polja
     def nadji_slobodna_polja(self):
         slobodna_polja = []
-        for i in self._tabla:
-            if i == self._slobodno_polje:
+        for i in range(len(self._tabla)):
+            if self._tabla[i] == self._slobodno_polje:
                 slobodna_polja.append(i)
 
         return slobodna_polja
@@ -98,6 +98,9 @@ class Igra:
 
         self._tabla[pozicija] = oznaka_igraca
         return True
+
+    def oslobodi_polje(self, pozicija):
+        self._tabla[pozicija] = self._slobodno_polje
 
     # Pomeranje igraca
     def pomeri_igraca(self, oznaka_igraca, stara_pozicija, nova_pozicija):
@@ -186,11 +189,11 @@ class Igra:
 
         for potez in range(18):
             if potez % 2 == 0: # Beli igrac je na potezu
-                pozicija = self._igrac1.postavi_figuru()
-                self._potez_beli(pozicija)
+                beli_pozicija = self._igrac1.postavi_figuru()
+                self._potez_beli(beli_pozicija)
             else:              # Crni igrac je na potezu
-                pozicija = self._igrac2.postavi_figuru()
-                self._potez_crni(pozicija)
+                crni_pozicija = self._igrac2.postavi_figuru(beli_pozicija)
+                self._potez_crni(crni_pozicija)
 
             self.nacrtaj_tablu()
 
@@ -262,11 +265,96 @@ class Covek:
 
             print("Ne mozete ukloniti igraca na poziciji ", pozicija)
 
+class Ai:
+    def __init__(self, oznaka, game_instance):
+        self.oznaka = oznaka
+        self.broj_figura = 9
+        self._game_instance = game_instance
+        self._oznaka_protivnik = 'B' if oznaka == 'W' else 'W'
+
+    # Ukoliko postorji mogucnost da neki od igraca napravi micu
+    def _moguca_mica(self, oznaka):
+        mice = self._game_instance._moguce_mice
+        tabla = self._game_instance._tabla
+
+        for i, j, k in mice:
+            if tabla[i] == tabla[j] == oznaka and tabla[k] == 'X':
+                return k
+            elif tabla[i] == tabla[k] == oznaka and tabla[j] == 'X':
+                return j
+            elif tabla[j] == tabla[k] == oznaka and tabla[i] == 'X':
+                return i
+
+        return None
+
+    # Ako je igrac zauzeo jednu lokaciju u mogucoj mici
+    def _nadji_poziciju_blizu(self, oznaka):
+        mice = self._game_instance._moguce_mice
+        tabla = self._game_instance._tabla
+
+        for i, j, k in mice:
+            if tabla[i] == oznaka and tabla[j] == tabla[k] == 'X':
+                return j
+            elif tabla[j] == oznaka and tabla[i] == tabla[k] == 'X':
+                return i
+            elif tabla[k] == oznaka and tabla[j] == tabla[i] == 'X':
+                return j
+
+        return None
+
+    # Metoda za trazenje random pozicije, kada ni 1 od uslova iz metoda dole nije ispunjen
+    def _nadji_random_poziciju(self):
+        from random import randint
+        slobodne_pozicije = self._game_instance.nadji_slobodna_polja()
+        return slobodne_pozicije[randint(0, len(slobodne_pozicije) - 1)]
+
+    # Ukoliko protivnik ima mogucnost da napravi micu, metoda _moguca_mica() iznad vraca poziciju sa kojom bi to blokirala
+    def _moguca_protivnikova_mica(self):
+        return self._moguca_mica(self._oznaka_protivnik)
+
+    # Ukoliko ja imam mogucnost da napravim micu, metoda _moguca_mica() iznad vraca poziciju sa kojom bi to blokirala
+    def _moguca_moja_mica(self):
+        return self._moguca_mica(self.oznaka)
+
+    # Vraca poziciju blizu protivnika da bi sprecio mogucu micu
+    def _pozicija_blizu_protivnika(self):
+        return self._nadji_poziciju_blizu(self._oznaka_protivnik)
+
+    # Vraca poziciju blizu moje figure, tako da u sledecem potezu imam mogucnost da napravim micu
+    def _pozicija_blizu_mene(self):
+        return self._nadji_poziciju_blizu(self.oznaka)
+
+    # Prema odredjenim prioritetima se gleda na koju poziciju ce AI staviti figuru
+    def postavi_figuru(self, poslednja_pozicija):
+        protivnik_mica = self._moguca_protivnikova_mica()
+        moja_mica = self._moguca_moja_mica()
+        protivnik_blizu = self._pozicija_blizu_protivnika()
+        blizu_mene = self._pozicija_blizu_mene()
+        random_pozicija = self._nadji_random_poziciju()
+
+        if moja_mica != None:
+            self._game_instance.postavi_igraca(self.oznaka, moja_mica)
+            print("[{}][AI] Stavio sam figuru na polje {}".format(self.oznaka, moja_mica))
+        elif protivnik_mica != None:
+            self._game_instance.postavi_igraca(self.oznaka, protivnik_mica)
+            print("[{}][AI] Stavio sam figuru na polje {}".format(self.oznaka, protivnik_mica))
+        elif blizu_mene != None:
+            self._game_instance.postavi_igraca(self.oznaka, blizu_mene)
+            print("[{}][AI] Stavio sam figuru na polje {}".format(self.oznaka, blizu_mene))
+        elif protivnik_blizu != None:
+            self._game_instance.postavi_igraca(self.oznaka, protivnik_blizu)
+            print("[{}][AI] Stavio sam figuru na polje {}".format(self.oznaka, protivnik_blizu))
+        else:
+            self._game_instance.postavi_igraca(self.oznaka, random_pozicija)
+            print("[{}][AI] Stavio sam figuru na polje {}".format(self.oznaka, random_pozicija))
+            
+    
+
 if __name__ == "__main__":
     print("\n\n---===   MICE   ===---\n\n")
 
     igra = Igra()
     igrac1 = Covek('W', igra)
-    igrac2 = Covek('B', igra)
+    igrac2 = Ai('B', igra)
 
     igra.postavi_figure(igrac1, igrac2)
