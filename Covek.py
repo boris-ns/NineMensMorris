@@ -18,6 +18,7 @@ class Covek:
                 import sys
                 sys.exit()
             
+            # TODO: IZMESTI OVO U GAME KLASU
             if self._game_instance.postavi_igraca(self.oznaka, pozicija):
                 self._broj_figura_postavjlanje -= 1
                 return pozicija

@@ -195,7 +195,9 @@ class Igra:
                 beli_pozicija = self._igrac1.postavi_figuru()
                 self._potez_beli(beli_pozicija)
             else:              # Crni igrac je na potezu
-                crni_pozicija = self._igrac2.postavi_figuru(beli_pozicija)
+                #crni_pozicija = self._igrac2.postavi_figuru(beli_pozicija) # za ai_old
+                crni_pozicija = self._igrac2.postavi_figuru()
+                self.postavi_igraca(self._igrac2.oznaka, crni_pozicija)
                 self._potez_crni(crni_pozicija)
 
             self.nacrtaj_tablu()
