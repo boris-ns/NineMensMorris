@@ -1,5 +1,5 @@
 from Covek import Covek
-from ai_old import Ai
+from ai_new import Ai
 
 class Igra:
 
