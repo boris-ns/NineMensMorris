@@ -5,10 +5,7 @@ class Ai:
         self._game_instance = game_instance
         self._oznaka_protivnik = 'B' if oznaka == 'W' else 'W'
 
-    def postavi_figuru(self):
-        pozicija, vrednost = self._maxi(5, -100000, 100000)
-        print("\n[AI] Zauzeo sam ", pozicija)
-        return pozicija
+        self._postavljenje_figure = 9
 
     # Vraca 1 ako sam ja napravio micu, -1 ako je protivnik, 0 ako nije napravljena mica u poslednjem potezu
     def _napravljena_mica(self):
@@ -53,7 +50,7 @@ class Ai:
 
         broj_blokiranih_ja = self.__nadji_broj_blokiranih(pozicije_ja)
         broj_blokiranih_protivnih = self.__nadji_broj_blokiranih(pozicije_protivnik)
-        return broj_blokiranih_protivnih - broj_blokiranih_ja
+        return broj_blokiranih_ja - broj_blokiranih_protivnih
 
     # Pomocna metoda koja nalazi broj blokiranih figura na tabli
     def __nadji_broj_blokiranih(self, pozicije):
@@ -85,7 +82,8 @@ class Ai:
             elif i == self._oznaka_protivnik:
                 broj_figura_protivnik += 1
 
-        return broj_figura_ja - broj_figura_protivnik
+        #return broj_figura_ja - broj_figura_protivnik
+        return broj_figura_protivnik - broj_figura_ja
 
     # Razlika izmedju broja mojih i protivnikovih '2 piece configurations'
     def _zauzete_dve_pozicije(self):
@@ -162,49 +160,76 @@ class Ai:
     def _izracunaj_heuristiku(self):
         return self._napravljena_mica() + self._broj_mica() + self._broj_blokiranih_figura() + self._broj_figura() + self._zauzete_dve_pozicije() + self._moguca_dupla_mica() + self._dupla_mica() + self._kraj_igre()
 
-    def _maxi(self, depth, alpha, beta):
+    def __nadji_oznaku_protivnika(self, oznaka):
+        if oznaka == self.oznaka:
+            return self._oznaka_protivnik
+        else:
+            return self.oznaka
+
+    # Glavni algoritam
+    def _minimax(self, depth, alpha, beta, oznaka):
         slobodna_polja = self._game_instance.nadji_slobodna_polja()
-        najbolja_pozicija = None
+
+        for i in slobodna_polja:
+            self._game_instance.postavi_igraca(oznaka, i)
+            #depth = 2
+
+            if depth == 0:
+                #depth += 1
+                heuristika = self._izracunaj_heuristiku()
+                self._game_instance.oslobodi_polje(i)                  
+                return heuristika
+            else:
+                #depth -= 1
+                vrednost = self._minimax(depth - 1, alpha, beta, self.__nadji_oznaku_protivnika(oznaka))
+                self._game_instance.oslobodi_polje(i)                  
+
+                if oznaka == self.oznaka:
+                    if vrednost > alpha:
+                        alpha = vrednost
+                    if alpha >= beta:
+                        #self._game_instance.oslobodi_polje(i)
+                        #depth -= 1
+                        return beta
+                else:
+                    if vrednost < beta:
+                        beta = vrednost
+                    if beta <= alpha: 
+                        #self._game_instance.oslobodi_polje(i)   
+                        #depth -= 1
+                        return alpha    
+
+        if oznaka == self.oznaka:
+            return alpha
+        else:
+            return beta
+
+    def postavi_figuru(self):
+        a = -10000
+        slobodna_polja = self._game_instance.nadji_slobodna_polja()
+        potezi = []
+        depth = 2
 
         for i in slobodna_polja:
             self._game_instance.postavi_igraca(self.oznaka, i)
 
-            if depth == 0:
-                self._game_instance.oslobodi_polje(i)
-                return i, self._izracunaj_heuristiku()
-            else:
-                depth -= 1
-                protivnik_poz, vrednost = self._mini(depth, alpha, beta)
+            #if self._postavljenje_figure < depth:
+                #depth = self._postavljenje_figure       
 
+            vrednost = self._minimax(depth, -10000, 10000, self._oznaka_protivnik)
             self._game_instance.oslobodi_polje(i)
 
-            if vrednost > alpha:
-                alpha = vrednost
-                najbolja_pozicija = i
-            if alpha >= beta:
-                return najbolja_pozicija, beta
-
-        return najbolja_pozicija, alpha
-
-    def _mini(self, depth, alpha, beta):
-        slobodna_polja = self._game_instance.nadji_slobodna_polja()
-        najbolja_pozicija = None
-
-        for i in slobodna_polja:
-            self._game_instance.postavi_igraca(self._oznaka_protivnik, i)
-
-            if depth == 0:
-                self._game_instance.oslobodi_polje(i)
-                return i, self._izracunaj_heuristiku()
-            else:
-                protivnik_poz, vrednost = self._maxi(depth - 1, alpha, beta)
-
-            self._game_instance.oslobodi_polje(i)
-
-            if vrednost > alpha:
-                alpha = vrednost
-                najbolja_pozicija = i
-            if alpha >= beta:
-                return najbolja_pozicija, beta
-
-        return najbolja_pozicija, alpha
+            #potezi.append(vrednost)
+            
+            if vrednost > a:
+                a = vrednost
+                potezi = [i]
+            elif vrednost == a:
+                potezi.append(i)
+            
+        import random
+        pozicija = random.choice(potezi)
+        #pozicija = potezi.index(max(potezi))
+        print("\n[AI] Zauzeo sam ", pozicija)
+        self._postavljenje_figure -= 1
+        return pozicija
