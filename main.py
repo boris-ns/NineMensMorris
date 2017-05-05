@@ -49,6 +49,15 @@ class Igra:
 
         return slobodna_polja
 
+    # Metoda trazi zauzeta polja za prosledjenog igraca i vraca listu indeksa tih polja
+    def nadji_zauzeta_polja(self, oznaka):
+        polja = []
+        for i in range(len(self._tabla)):
+            if self._tabla[i] == oznaka:
+                polja.append(i)
+
+        return polja
+
     # Provera da li pozicija postoji
     def _proveri_poziciju(self, pozicija):
         if not 0 <= pozicija < 24:
@@ -102,6 +111,7 @@ class Igra:
         self._tabla[pozicija] = oznaka_igraca
         return True
 
+    # Pomocna metoda za minimax
     def oslobodi_polje(self, pozicija):
         self._tabla[pozicija] = self._slobodno_polje
 
@@ -205,7 +215,10 @@ class Igra:
         self.pomeraj_figure() # Pozivanje Faze 2
 
     # FAZA 2: 
-    def pomeraj_figure(self):
+    def pomeraj_figure(self, igrac1, igrac2):
+        self._igrac1 = igrac1
+        self._igrac2 = igrac2
+
         potez = 0
         while not self._proveri_mogucnost_skakanja():
             if potez % 2 == 0: # Beli igrac je na potezu
@@ -231,4 +244,28 @@ if __name__ == "__main__":
     igrac1 = Covek('W', igra)
     igrac2 = Ai('B', igra)
 
-    igra.postavi_figure(igrac1, igrac2)
+    igra._tabla[0] = 'B'
+    igra._tabla[3] = 'B'
+    igra._tabla[5] = 'B'
+    igra._tabla[7] = 'B'
+    igra._tabla[9] = 'B'
+    igra._tabla[10] = 'B'
+    igra._tabla[11] = 'B'
+    igra._tabla[12] = 'B'
+    igra._tabla[23] = 'B'
+    
+    igra._tabla[1] = 'W'
+    igra._tabla[2] = 'W'
+    igra._tabla[6] = 'W'
+    igra._tabla[8] = 'W'
+    igra._tabla[15] = 'W'
+    igra._tabla[16] = 'W'
+    igra._tabla[18] = 'W'
+    igra._tabla[21] = 'W'
+    igra._tabla[22] = 'W'
+    
+
+    #igra.postavi_figure(igrac1, igrac2)
+    
+    igra.nacrtaj_tablu()
+    igra.pomeraj_figure(igrac1, igrac2)

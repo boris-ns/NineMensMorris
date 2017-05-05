@@ -60,7 +60,7 @@ class Ai:
         for i in pozicije:
             blokirana = True
             for j in putanje[i]:
-                if j == 'X':
+                if self._game_instance._tabla[j] == 'X':
                     blokirana = False
                     break
             
@@ -166,8 +166,8 @@ class Ai:
         else:
             return self.oznaka
 
-    # Glavni algoritam
-    def _minimax(self, depth, alpha, beta, oznaka):
+    # FAZA 1: Minimax za postavljanje figura
+    def _minimax_postavi(self, depth, alpha, beta, oznaka):
         slobodna_polja = self._game_instance.nadji_slobodna_polja()
 
         for i in slobodna_polja:
@@ -181,7 +181,7 @@ class Ai:
                 return heuristika
             else:
                 #depth -= 1
-                vrednost = self._minimax(depth - 1, alpha, beta, self.__nadji_oznaku_protivnika(oznaka))
+                vrednost = self._minimax_postavi(depth - 1, alpha, beta, self.__nadji_oznaku_protivnika(oznaka))
                 self._game_instance.oslobodi_polje(i)                  
 
                 if oznaka == self.oznaka:
@@ -208,7 +208,7 @@ class Ai:
         a = -10000
         slobodna_polja = self._game_instance.nadji_slobodna_polja()
         potezi = []
-        depth = 2
+        depth = 3
 
         for i in slobodna_polja:
             self._game_instance.postavi_igraca(self.oznaka, i)
@@ -216,7 +216,7 @@ class Ai:
             #if self._postavljenje_figure < depth:
                 #depth = self._postavljenje_figure       
 
-            vrednost = self._minimax(depth, -10000, 10000, self._oznaka_protivnik)
+            vrednost = self._minimax_postavi(depth, -10000, 10000, self._oznaka_protivnik)
             self._game_instance.oslobodi_polje(i)
 
             #potezi.append(vrednost)
@@ -233,3 +233,105 @@ class Ai:
         print("\n[AI] Zauzeo sam ", pozicija)
         self._postavljenje_figure -= 1
         return pozicija
+
+    def _proveri_blokiran(self, pozicija):
+        putanje = self._game_instance._moguce_putanje
+
+        for i in putanje[pozicija]:
+            if self._game_instance._tabla[i] == 'X':
+                return False
+
+        return True
+    
+    def _nadji_moguca_polja(self, stara_pozicija):
+        putanje = self._game_instance._moguce_putanje
+        moguce_putanje = []
+
+        for i in putanje[stara_pozicija]:
+            if self._game_instance._tabla[i] == 'X':
+                moguce_putanje.append(i)
+
+        return moguce_putanje
+
+    # FAZA 2: Minimax za pomeranje figura
+    def _minimax_pomeri(self, depth, alpha, beta, oznaka):
+        zauzeta_polja = self._game_instance.nadji_zauzeta_polja(oznaka)
+
+        for i in zauzeta_polja:
+            if self._proveri_blokiran(i): # Ako je igrac blokiran nastavi na obradu sledeceg
+                continue
+            
+            moguca_polja = self._nadji_moguca_polja(i)
+
+            for j in moguca_polja:
+                self._game_instance.oslobodi_polje(i)
+                self._game_instance.postavi_igraca(oznaka, j)
+
+                if depth == 0:
+                    heuristika = self._izracunaj_heuristiku()
+                    self._game_instance.oslobodi_polje(j)
+                    self._game_instance.postavi_igraca(oznaka, i)
+                    return heuristika
+                else:
+                    vrednost = self._minimax_pomeri(depth - 1, alpha, beta, self.__nadji_oznaku_protivnika(oznaka))
+                    self._game_instance.oslobodi_polje(j)
+                    self._game_instance.postavi_igraca(oznaka, i)                  
+
+                    if oznaka == self.oznaka:
+                        if vrednost > alpha:
+                            alpha = vrednost
+                        if alpha >= beta:
+                            #self._game_instance.oslobodi_polje(i)
+                            #depth -= 1
+                            return beta
+                    else:
+                        if vrednost < beta:
+                            beta = vrednost
+                        if beta <= alpha: 
+                            #self._game_instance.oslobodi_polje(i)   
+                            #depth -= 1
+                            return alpha    
+
+        if oznaka == self.oznaka:
+            return alpha
+        else:
+            return beta
+
+    def pomeri_figuru(self):
+        a = -10000
+        zauzeta_polja = self._game_instance.nadji_zauzeta_polja(self.oznaka)
+        potezi = []
+        stara_pozicija = None
+        DEPTH = 3
+
+        for i in zauzeta_polja:
+            if self._proveri_blokiran(i):
+                continue
+
+            moguca_polja = self._nadji_moguca_polja(i)
+
+            for j in moguca_polja:
+                self._game_instance.oslobodi_polje(i)
+                self._game_instance.postavi_igraca(self.oznaka, j)  
+
+                vrednost = self._minimax_pomeri(DEPTH, -10000, 10000, self._oznaka_protivnik)
+
+                self._game_instance.oslobodi_polje(j)
+                self._game_instance.postavi_igraca(self.oznaka, i)
+
+                if vrednost > a:
+                    a = vrednost
+                    potezi = [j]
+                    stara_pozicija = i
+                #elif vrednost == a:
+                    #potezi.append(i)
+                    #stara_pozicija = i
+                
+        import random
+        pozicija = random.choice(potezi)
+        print("\n[AI] Pomerio sam figuru sa " + str(stara_pozicija) + " na " + str(pozicija))
+        self._game_instance.pomeri_igraca(self.oznaka, stara_pozicija, pozicija)
+        return pozicija
+
+    def pojedi_figuru(self):
+        pass
