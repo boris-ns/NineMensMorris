@@ -23,7 +23,7 @@ class Igra:
         16: (15, 17, 19),
         17: (12, 16),
         18: (10, 19),
-        19: (16, 18, 22),
+        19: (16, 18, 20, 22),
         20: (13, 19),
         21: (9, 22),
         22: (19, 21, 23),
@@ -203,6 +203,7 @@ class Igra:
         for potez in range(18):
             if potez % 2 == 0: # Beli igrac je na potezu
                 beli_pozicija = self._igrac1.postavi_figuru()
+                self.postavi_igraca(self._igrac1.oznaka, beli_pozicija)
                 self._potez_beli(beli_pozicija)
             else:              # Crni igrac je na potezu
                 #crni_pozicija = self._igrac2.postavi_figuru(beli_pozicija) # za ai_old
@@ -215,9 +216,9 @@ class Igra:
         self.pomeraj_figure() # Pozivanje Faze 2
 
     # FAZA 2: 
-    def pomeraj_figure(self, igrac1, igrac2):
-        self._igrac1 = igrac1
-        self._igrac2 = igrac2
+    def pomeraj_figure(self):#, igrac1, igrac2):
+        #self._igrac1 = igrac1
+        #self._igrac2 = igrac2
 
         potez = 0
         while not self._proveri_mogucnost_skakanja():
@@ -243,7 +244,8 @@ if __name__ == "__main__":
     igra = Igra()
     igrac1 = Covek('W', igra)
     igrac2 = Ai('B', igra)
-
+    igra.postavi_figure(igrac1, igrac2)
+    '''
     igra._tabla[0] = 'B'
     igra._tabla[3] = 'B'
     igra._tabla[5] = 'B'
@@ -264,8 +266,7 @@ if __name__ == "__main__":
     igra._tabla[21] = 'W'
     igra._tabla[22] = 'W'
     
-
-    #igra.postavi_figure(igrac1, igrac2)
     
     igra.nacrtaj_tablu()
     igra.pomeraj_figure(igrac1, igrac2)
+    '''
