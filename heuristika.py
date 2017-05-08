@@ -141,25 +141,35 @@ class Heuristika:
         
         return broj_mica
 
-    # Vraca 1 ako je pobeda, vraca -1 ako je izgubljeno, u suprotnom vraca 0
-    def _kraj_igre(self):
+    def _kraj_igre(self, oznaka1, oznaka2):
         if self._game_instance.proveri_kraj_igre():
-            if self._game_instance._pobednik == self.oznaka:
+            if self._game_instance._pobednik == oznaka1:
                 return 50
-            elif self._game_instance._pobednik == self._oznaka_protivnik:
+            elif self._game_instance._pobednik == oznaka2:
                 return -50
 
         return 0
-
     
+
     def heuristika_postavljanje(self, poslednji_potez, oznaka1, oznaka2):
         h = 0
         h -= self._broj_blokiranih_figura(oznaka1)
         h += 12 * (self._broj_mica(oznaka1) - self._broj_mica(oznaka2))
-        h += 11 * (self._blokirao_mogucu_micu(oznaka1, oznaka2) - self._blokirao_mogucu_micu(oznaka2, oznaka1))
+        h += 11 * self._blokirao_mogucu_micu(oznaka1, oznaka2) # - self._blokirao_mogucu_micu(oznaka2, oznaka1))
         h += 9 * self._moguca_dupla_mica(oznaka1)
         #h += 12 * self._napravljena_mica(oznaka1, poslednji_potez)
         #h += self._moguca_dupla_mica(oznaka1) - self._moguca_dupla_mica(oznaka2)
         #h += self._zauzete_dve_pozicije(oznaka1) - self._zauzete_dve_pozicije(oznaka1)
+
+        return h
+
+    def heuristika_pomeranje(self, poslednji_potez, oznaka1, oznaka2):
+        h = 0
+
+        h += self._broj_blokiranih_figura(oznaka2) - self._broj_blokiranih_figura(oznaka1)
+        h += 12 * (self._broj_mica(oznaka1) - self._broj_mica(oznaka2))
+        h += 11 * self._moguca_dupla_mica(oznaka1)
+        h += 10 * self._blokirao_mogucu_micu(oznaka1, oznaka2)
+        h += 2 * self._kraj_igre(oznaka1, oznaka2)
 
         return h

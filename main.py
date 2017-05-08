@@ -185,13 +185,15 @@ class Igra:
     def _potez_beli(self, pozicija):
         if self.proveri_micu(self._igrac1.oznaka, pozicija):
             self.nacrtaj_tablu()
-            self._igrac1.pojedi_figuru()
+            poz_pojedi = self._igrac1.pojedi_figuru()
+            self.ukloni_igraca(self._igrac1.oznaka, poz_pojedi)
 
     # Metode koje se pozivaju ukoliko je sastavljena mica za crnog igraca
     def _potez_crni(self, pozicija):
         if self.proveri_micu(self._igrac2.oznaka, pozicija):
             self.nacrtaj_tablu()
-            self._igrac2.pojedi_figuru()
+            poz_pojedi = self._igrac2.pojedi_figuru()
+            self.ukloni_igraca(self._igrac2.oznaka, poz_pojedi)
 
     # FAZA 1: Odavde pocinje igra. Postavljanje figura. Ova faza traje maksimalno 18 poteza.
     def postavi_figure(self, igrac1, igrac2):
@@ -206,7 +208,6 @@ class Igra:
                 self.postavi_igraca(self._igrac1.oznaka, beli_pozicija)
                 self._potez_beli(beli_pozicija)
             else:              # Crni igrac je na potezu
-                #crni_pozicija = self._igrac2.postavi_figuru(beli_pozicija) # za ai_old
                 crni_pozicija = self._igrac2.postavi_figuru()
                 self.postavi_igraca(self._igrac2.oznaka, crni_pozicija)
                 self._potez_crni(crni_pozicija)
@@ -216,9 +217,9 @@ class Igra:
         self.pomeraj_figure() # Pozivanje Faze 2
 
     # FAZA 2: 
-    def pomeraj_figure(self):#, igrac1, igrac2):
-        #self._igrac1 = igrac1
-        #self._igrac2 = igrac2
+    def pomeraj_figure(self, igrac1, igrac2):
+        self._igrac1 = igrac1
+        self._igrac2 = igrac2
 
         potez = 0
         while not self._proveri_mogucnost_skakanja():
@@ -239,34 +240,32 @@ class Igra:
 
 
 if __name__ == "__main__":
-    print("\n\n---===   MICE   ===---\n\n")
+    print("\n\n\t---===   MICE   ===---\n\n")
 
     igra = Igra()
     igrac1 = Covek('W', igra)
     igrac2 = Ai('B', igra)
-    igra.postavi_figure(igrac1, igrac2)
-    '''
+    #igra.postavi_figure(igrac1, igrac2)
+
     igra._tabla[0] = 'B'
     igra._tabla[3] = 'B'
     igra._tabla[5] = 'B'
+    igra._tabla[6] = 'B'
     igra._tabla[7] = 'B'
     igra._tabla[9] = 'B'
-    igra._tabla[10] = 'B'
-    igra._tabla[11] = 'B'
-    igra._tabla[12] = 'B'
-    igra._tabla[23] = 'B'
+    igra._tabla[14] = 'B'
+    igra._tabla[17] = 'B'
+    igra._tabla[21] = 'B'
     
-    igra._tabla[1] = 'W'
     igra._tabla[2] = 'W'
-    igra._tabla[6] = 'W'
     igra._tabla[8] = 'W'
+    igra._tabla[10] = 'W'
+    igra._tabla[11] = 'W'
+    igra._tabla[13] = 'W'
     igra._tabla[15] = 'W'
-    igra._tabla[16] = 'W'
-    igra._tabla[18] = 'W'
-    igra._tabla[21] = 'W'
-    igra._tabla[22] = 'W'
-    
+    igra._tabla[19] = 'W'
+    igra._tabla[20] = 'W'
+    #igra._tabla[22] = 'W'
     
     igra.nacrtaj_tablu()
     igra.pomeraj_figure(igrac1, igrac2)
-    '''

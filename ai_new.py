@@ -8,7 +8,7 @@ class Ai:
         self._oznaka_protivnik = 'B' if oznaka == 'W' else 'W'
         self._he = Heuristika(game_instance)
         self._postavljenje_figure = 9
-
+        self.DEPTH = 3
     
 
     # Funkcija koja izracunava heuristiku. Bice linearna f-ja
@@ -39,13 +39,10 @@ class Ai:
             self._game_instance.postavi_igraca(oznaka, i)
 
             if depth == 0:
-                #heuristika = self._izracunaj_heuristiku() + self._napravljena_mica(i)
-                heuristika = self._he.heuristika_postavljanje(i, oznaka, self.__nadji_oznaku_protivnika(oznaka))
+                heuristika = self._he.heuristika_postavljanje(i, self.oznaka, self._oznaka_protivnik)
                 self._game_instance.oslobodi_polje(i)                  
                 return heuristika
             else:
-                #vrednost = self._minimax_postavi(depth - 1, alpha, beta, self.__nadji_oznaku_protivnika(oznaka)) + self._napravljena_mica(i)
-                #h = self._heuristika_postavljanje(i)
                 vrednost = self._minimax_postavi(depth - 1, alpha, beta, self.__nadji_oznaku_protivnika(oznaka))
                 self._game_instance.oslobodi_polje(i)
 
@@ -69,12 +66,11 @@ class Ai:
         a = -10000
         slobodna_polja = self._game_instance.nadji_slobodna_polja()
         potezi = []
-        DEPTH = 3
 
         for i in slobodna_polja:
             self._game_instance.postavi_igraca(self.oznaka, i)   
 
-            vrednost = self._minimax_postavi(DEPTH, -10000, 10000, self._oznaka_protivnik)
+            vrednost = self._minimax_postavi(self.DEPTH, -10000, 10000, self._oznaka_protivnik)
             self._game_instance.oslobodi_polje(i)
             
             if vrednost > a:
@@ -85,7 +81,7 @@ class Ai:
             
         import random
         pozicija = random.choice(potezi)
-        #pozicija = potezi.index(max(potezi))
+
         print("\n[AI] Zauzeo sam ", pozicija)
         self._postavljenje_figure -= 1
         return pozicija
@@ -124,8 +120,7 @@ class Ai:
                 self._game_instance.postavi_igraca(oznaka, j)
 
                 if depth == 0:
-                    #heuristika = self._izracunaj_heuristiku()
-                    heuristika = self._stara_heuristika(j)
+                    heuristika = self._he.heuristika_pomeranje(j, self.oznaka, self._oznaka_protivnik)
                     self._game_instance.oslobodi_polje(j)
                     self._game_instance.postavi_igraca(oznaka, i)
                     return heuristika
@@ -138,16 +133,12 @@ class Ai:
                         if vrednost > alpha:
                             alpha = vrednost
                         if alpha >= beta:
-                            #self._game_instance.oslobodi_polje(i)
-                            #depth -= 1
                             return beta
                     else:
                         if vrednost < beta:
                             beta = vrednost
-                        if beta <= alpha: 
-                            #self._game_instance.oslobodi_polje(i)   
-                            #depth -= 1
-                            return alpha    
+                        if beta <= alpha:
+                            return alpha
 
         if oznaka == self.oznaka:
             return alpha
@@ -159,7 +150,6 @@ class Ai:
         zauzeta_polja = self._game_instance.nadji_zauzeta_polja(self.oznaka)
         potez = None
         stara_pozicija = None
-        DEPTH = 3
 
         for i in zauzeta_polja:
             if self._proveri_blokiran(i):
@@ -171,7 +161,7 @@ class Ai:
                 self._game_instance.oslobodi_polje(i)
                 self._game_instance.postavi_igraca(self.oznaka, j)  
 
-                vrednost = self._minimax_pomeri(DEPTH, -10000, 10000, self._oznaka_protivnik)
+                vrednost = self._minimax_pomeri(self.DEPTH, -10000, 10000, self._oznaka_protivnik)
 
                 self._game_instance.oslobodi_polje(j)
                 self._game_instance.postavi_igraca(self.oznaka, i)
@@ -220,7 +210,7 @@ class Ai:
 
         if moguca_mica != None:
             print("\n[AI] Pojeo sam figuru sa pozicije " + str(moguca_mica))
-            self._game_instance.ukloni_igraca(self._oznaka_protivnik, moguca_mica)
+            return moguca_mica
         else:
             print("\n[AI] Pojeo sam figuru sa pozicije " + str(random_pozicija))
-            self._game_instance.ukloni_igraca(self._oznaka_protivnik, random_pozicija)
+            return random_pozicija

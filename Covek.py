@@ -48,6 +48,6 @@ class Covek:
                 continue
 
             if self._game_instance.ukloni_igraca(self.oznaka, pozicija):
-                break
+                return pozicija
 
             print("Ne mozete ukloniti igraca na poziciji ", pozicija)
