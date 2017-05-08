@@ -68,19 +68,6 @@ class Heuristika:
 
         return broj_figura
 
-    '''
-    def _2_piece_conf(self, oznaka):
-        mice = self._game_instance._moguce_mice
-        tabla = self._game_instance._tabla
-        broj_zauzetih = 0
-
-        for i, j, k in mice:
-            if (tabla[i] == tabla[j] == self.oznaka and tabla[k] == 'X') or (tabla[i] == tabla[k] == self.oznaka and tabla[j] == 'X') or (tabla[j] == tabla[k] == self.oznaka and tabla[i] == 'X'):
-                return 1
-
-        return 0
-    '''
-
     def _blokirao_mogucu_micu(self, oznaka1, oznaka2):
         mice = self._game_instance._moguce_mice
         tabla = self._game_instance._tabla
@@ -143,6 +130,7 @@ class Heuristika:
         
         return broj_mica
 
+    # Metoda koja pozivda kraj_igre iz klase Igra, vrsi proveru ko je pobedio
     def _kraj_igre(self, oznaka1, oznaka2):
         if self._game_instance.proveri_kraj_igre():
             if self._game_instance._pobednik == oznaka1:
