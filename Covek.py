@@ -39,7 +39,7 @@ class Covek:
 
             print("Ne mozete pomeriti figuru na polje ", nova_pozicija)
 
-    def pojedi_figuru(self):
+    def pojedi_figuru(self, pozicija):
         while True:
             try:
                 pozicija = int(input("\n[{}] unesite polje da pojedete figuru: ".format(self.oznaka)))

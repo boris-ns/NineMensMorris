@@ -178,17 +178,26 @@ class Ai:
         self._game_instance.pomeri_igraca(self.oznaka, stara_pozicija, potez)
         return potez
 
+    # Metoda za proveru da li je napravljena mica za prosledjenog igraca
+    def proveri_micu(self, oznaka_igraca, poslednja_pozicija):
+        for i, j, k in self._game_instance._moguce_mice:
+            if i == poslednja_pozicija or j == poslednja_pozicija or k == poslednja_pozicija:
+                if self._game_instance._tabla[i] == self._game_instance._tabla[j] == self._game_instance._tabla[k] and self._game_instance._tabla[i] == oznaka_igraca:
+                    return True
+
+        return False
+
     # Nalazi poziciju 2 figure u redu, i vraca poz. jednu od njih da bi ih pojeo, sprecavanje moguce mice
     def _moguca_mica_pojedi(self):
         mice = self._game_instance._moguce_mice
         tabla = self._game_instance._tabla
         import random
         for i, j, k in mice:
-            if tabla[i] == tabla[j] == self._oznaka_protivnik and tabla[k] == 'X':   
+            if tabla[i] == tabla[j] == self._oznaka_protivnik and tabla[k] == 'X' and not self.proveri_micu(self._oznaka_protivnik, i) and not self.proveri_micu(self._oznaka_protivnik, j):   
                 return random.choice([i, j])
-            elif tabla[i] == tabla[k] == self._oznaka_protivnik and tabla[j] == 'X':
+            elif tabla[i] == tabla[k] == self._oznaka_protivnik and tabla[j] == 'X' and not self.proveri_micu(self._oznaka_protivnik, i) and not self.proveri_micu(self._oznaka_protivnik, k):
                 return random.choice([i,k])
-            elif tabla[j] == tabla[k] == self._oznaka_protivnik and tabla[i] == 'X':
+            elif tabla[j] == tabla[k] == self._oznaka_protivnik and tabla[i] == 'X' and not self.proveri_micu(self._oznaka_protivnik, j) and not self.proveri_micu(self._oznaka_protivnik, k):
                 return random.choice([j,k])
 
         return None
@@ -199,12 +208,12 @@ class Ai:
         protivnik_pozicije = []
         
         for i in range(0, len(tabla)):
-            if tabla[i] == self._oznaka_protivnik:
+            if tabla[i] == self._oznaka_protivnik and not self.proveri_micu(self._oznaka_protivnik, i):
                 protivnik_pozicije.append(i)
 
         return protivnik_pozicije[randint(0, len(protivnik_pozicije) - 1)]
 
-    def pojedi_figuru(self):
+    def pojedi_figuru(self, poslednji_potez):
         moguca_mica = self._moguca_mica_pojedi()
         random_pozicija = self._nadji_random_poziciju_pojedi()
 

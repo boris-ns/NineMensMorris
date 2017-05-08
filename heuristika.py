@@ -3,14 +3,16 @@ class Heuristika:
         self._game_instance = game_instance
     
     # Vraca 1 ako sam ja napravio micu, -1 ako je protivnik, 0 ako nije napravljena mica u poslednjem potezu
-    def _napravljena_mica(self, oznaka, poslednji_potez):
+    def _napravljena_mica(self, oznaka1, oznaka2, poslednji_potez):
         mice = self._game_instance._moguce_mice
         tabla = self._game_instance._tabla
 
         for i, j, k in mice:
             if i == poslednji_potez or j == poslednji_potez or k == poslednji_potez:
-                if tabla[i] == tabla[j] == tabla[k] == oznaka:
-                    return 10
+                if tabla[i] == tabla[j] == tabla[k] == oznaka1:
+                    return 1
+                elif tabla[i] == tabla[j] == tabla[k] == oznaka2:
+                    return -1
         
         return 0
 
@@ -144,13 +146,13 @@ class Heuristika:
     def _kraj_igre(self, oznaka1, oznaka2):
         if self._game_instance.proveri_kraj_igre():
             if self._game_instance._pobednik == oznaka1:
-                return 50
+                return 1
             elif self._game_instance._pobednik == oznaka2:
-                return -50
+                return -1
 
         return 0
     
-
+    '''
     def heuristika_postavljanje(self, poslednji_potez, oznaka1, oznaka2):
         h = 0
         h -= self._broj_blokiranih_figura(oznaka1)
@@ -162,7 +164,33 @@ class Heuristika:
         #h += self._zauzete_dve_pozicije(oznaka1) - self._zauzete_dve_pozicije(oznaka1)
 
         return h
+    '''
 
+    def heuristika_postavljanje(self, poslednji_potez, oznaka1, oznaka2):
+        # Evaluation function for Phase 1 = 18 * (1) + 26 * (2) + 1 * (3) + 9 * (4) + 10 * (5) + 7 * (6)
+        h = 0
+        h += 18 * self._napravljena_mica(oznaka1, oznaka2, poslednji_potez)
+        h += 26 * (self._broj_mica(oznaka1) - self._broj_mica(oznaka2))
+        h += self._broj_blokiranih_figura(oznaka2) - self._broj_blokiranih_figura(oznaka1)
+        h += 9 * (self._broj_figura(oznaka1) - self._broj_figura(oznaka2))
+        h += 10 * (self._zauzete_dve_pozicije(oznaka1) - self._zauzete_dve_pozicije(oznaka2))
+        h += 7 * (self._moguca_dupla_mica(oznaka1) - self._moguca_dupla_mica(oznaka2)) # TODO proveri
+
+        return h
+
+    def heuristika_pomeranje(self, poslednji_potez, oznaka1, oznaka2):
+        # Evaluation function for Phase 2 = 14 * (1) + 43 * (2) + 10 * (3) + 11 * (4) + 8 * (7) + 1086 * (8)
+        h = 0
+        h += 14 * self._napravljena_mica(oznaka1, oznaka2, poslednji_potez)
+        h += 43 * (self._broj_mica(oznaka1) - self._broj_mica(oznaka2))
+        h += 10 * (self._broj_blokiranih_figura(oznaka2) - self._broj_blokiranih_figura(oznaka1))
+        h += 11 * (self._broj_figura(oznaka1) - self._broj_figura(oznaka2))
+        h += 8 * (self._dupla_mica(oznaka1) - self._dupla_mica(oznaka2))
+        h += 1086 * self._kraj_igre(oznaka1, oznaka2)
+
+        return h
+
+    '''
     def heuristika_pomeranje(self, poslednji_potez, oznaka1, oznaka2):
         h = 0
 
@@ -173,3 +201,4 @@ class Heuristika:
         h += 2 * self._kraj_igre(oznaka1, oznaka2)
 
         return h
+    '''

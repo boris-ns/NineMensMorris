@@ -89,18 +89,39 @@ class Igra:
 
         return False
 
+    def _proveri_blokiran(self, oznaka):
+        pozicije = []
+
+        for i in range(len(self._tabla)):
+            if self._tabla[i] == oznaka:
+                pozicije.append(i)
+
+        blokiran = True
+        for i in pozicije:
+            blokiran = self._proveri_blokirana_pozicija(i)
+            if not blokiran:
+                break
+
+        return blokiran
+
+    def _proveri_blokirana_pozicija(self, pozicija):
+        putanje = self._moguce_putanje
+
+        for i in putanje[pozicija]:
+            if self._tabla[i] == 'X':
+                return False
+
+        return True
+
     # Provera da li je igra zavrsena. Igra je zavrsena ako je igrac ostao sa 2 figure
-    # TODO: ili nema gde da se pomeri
     def proveri_kraj_igre(self):
-        if self._igrac1.broj_figura == 2:
+        if self._igrac1.broj_figura == 2 or self._proveri_blokiran(self._igrac1.oznaka):
             self._pobednik = self._igrac2.oznaka
             return True
-        if self._igrac2.broj_figura == 2:
+        if self._igrac2.broj_figura == 2 or self._proveri_blokiran(self._igrac1.oznaka):
             self._pobednik = self._igrac1.oznaka
             return True
         
-        # TODO: Proveri ako nema gde da se pomeri
-
         return False
 
     # Zauzimanje polja na tabli
@@ -185,14 +206,14 @@ class Igra:
     def _potez_beli(self, pozicija):
         if self.proveri_micu(self._igrac1.oznaka, pozicija):
             self.nacrtaj_tablu()
-            poz_pojedi = self._igrac1.pojedi_figuru()
+            poz_pojedi = self._igrac1.pojedi_figuru(pozicija)
             self.ukloni_igraca(self._igrac1.oznaka, poz_pojedi)
 
     # Metode koje se pozivaju ukoliko je sastavljena mica za crnog igraca
     def _potez_crni(self, pozicija):
         if self.proveri_micu(self._igrac2.oznaka, pozicija):
             self.nacrtaj_tablu()
-            poz_pojedi = self._igrac2.pojedi_figuru()
+            poz_pojedi = self._igrac2.pojedi_figuru(pozicija)
             self.ukloni_igraca(self._igrac2.oznaka, poz_pojedi)
 
     # FAZA 1: Odavde pocinje igra. Postavljanje figura. Ova faza traje maksimalno 18 poteza.
@@ -247,25 +268,21 @@ if __name__ == "__main__":
     igrac2 = Ai('B', igra)
     #igra.postavi_figure(igrac1, igrac2)
 
-    igra._tabla[0] = 'B'
-    igra._tabla[3] = 'B'
-    igra._tabla[5] = 'B'
+    igra._tabla[4] = 'B'
     igra._tabla[6] = 'B'
-    igra._tabla[7] = 'B'
     igra._tabla[9] = 'B'
+    igra._tabla[10] = 'B'
+    igra._tabla[12] = 'B'
     igra._tabla[14] = 'B'
-    igra._tabla[17] = 'B'
-    igra._tabla[21] = 'B'
+    igra._tabla[16] = 'B'
+    igra._tabla[22] = 'B'
     
-    igra._tabla[2] = 'W'
-    igra._tabla[8] = 'W'
-    igra._tabla[10] = 'W'
-    igra._tabla[11] = 'W'
-    igra._tabla[13] = 'W'
-    igra._tabla[15] = 'W'
-    igra._tabla[19] = 'W'
+    igra._tabla[3] = 'W'
+    igra._tabla[17] = 'W'
+    igra._tabla[18] = 'W'
     igra._tabla[20] = 'W'
-    #igra._tabla[22] = 'W'
+    igra._tabla[21] = 'W'
+    igra._tabla[23] = 'W'
     
     igra.nacrtaj_tablu()
     igra.pomeraj_figure(igrac1, igrac2)
