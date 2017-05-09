@@ -1,6 +1,7 @@
 class Covek:
     def __init__(self, oznaka, game_instance):
         self.oznaka = oznaka
+        self._oznaka_protivnik = 'B' if oznaka == 'W' else 'W'
         self.broj_figura = 9
         self._game_instance = game_instance
 
@@ -39,8 +40,11 @@ class Covek:
 
             print("Ne mozete pomeriti figuru na polje ", nova_pozicija)
 
-    def pojedi_figuru(self, pozicija):
+    def pojedi_figuru(self):
         while True:
+            if not self._game_instance.sve_u_mici(self._oznaka_protivnik):
+                return -1
+
             try:
                 pozicija = int(input("\n[{}] unesite polje da pojedete figuru: ".format(self.oznaka)))
             except ValueError:

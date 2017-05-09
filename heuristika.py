@@ -159,7 +159,7 @@ class Heuristika:
         h = 0
         h += 18 * self._napravljena_mica(oznaka1, oznaka2, poslednji_potez)
         h += 26 * (self._broj_mica(oznaka1) - self._broj_mica(oznaka2))
-        h += self._broj_blokiranih_figura(oznaka2) - self._broj_blokiranih_figura(oznaka1)
+        h += self._broj_blokiranih_figura(oznaka2) - self._broj_blokiranih_figura(oznaka1) # ili 4
         h += 9 * (self._broj_figura(oznaka1) - self._broj_figura(oznaka2))
         h += 10 * (self._zauzete_dve_pozicije(oznaka1) - self._zauzete_dve_pozicije(oznaka2))
         h += 7 * (self._moguca_dupla_mica(oznaka1) - self._moguca_dupla_mica(oznaka2)) # TODO proveri
@@ -170,6 +170,16 @@ class Heuristika:
         # Evaluation function for Phase 2 = 14 * (1) + 43 * (2) + 10 * (3) + 11 * (4) + 8 * (7) + 1086 * (8)
         h = 0
         h += 14 * self._napravljena_mica(oznaka1, oznaka2, poslednji_potez)
+        h += 43 * (self._broj_mica(oznaka1) - self._broj_mica(oznaka2))
+        h += 10 * (self._broj_blokiranih_figura(oznaka2) - self._broj_blokiranih_figura(oznaka1)) # ili 6
+        h += 11 * (self._broj_figura(oznaka1) - self._broj_figura(oznaka2))
+        h += 8 * (self._dupla_mica(oznaka1) - self._dupla_mica(oznaka2))
+        h += 1086 * self._kraj_igre(oznaka1, oznaka2)
+
+        return h
+
+    def heuristika_pojedi(self, oznaka1, oznaka2):
+        h = 0
         h += 43 * (self._broj_mica(oznaka1) - self._broj_mica(oznaka2))
         h += 10 * (self._broj_blokiranih_figura(oznaka2) - self._broj_blokiranih_figura(oznaka1))
         h += 11 * (self._broj_figura(oznaka1) - self._broj_figura(oznaka2))

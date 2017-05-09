@@ -74,6 +74,16 @@ class Igra:
 
         return False
 
+    def sve_u_mici(self, oznaka):
+        for i in range(len(self._tabla)):
+            if self._tabla[i] == oznaka:
+                for j, k, l in self._moguce_mice:
+                    if not self._tabla[j] == self._tabla[k] == self._tabla[l] == oznaka:
+                        return True
+        
+        return False
+
+    '''
     # Provera da li je neki od igaca ostao sa 3 figure. Tada je moguce skakanje za tog igraca.
     # Ovo je i uslov za Fazu 3
     def _proveri_mogucnost_skakanja(self):
@@ -81,6 +91,7 @@ class Igra:
             return True
 
         return False
+    '''
 
     # Proveravanje da li figura sme da se krece po odredjenoj putanji
     def _proveri_putanju_pomeranja(self, stara_poz, nova_poz):
@@ -89,6 +100,7 @@ class Igra:
 
         return False
 
+    # Proverava da li su sve figure igraca cija je oznaka prosledjena blokirane
     def _proveri_blokiran(self, oznaka):
         pozicije = []
 
@@ -104,6 +116,7 @@ class Igra:
 
         return blokiran
 
+    # Proverava da li je odredjena pozicija koja se prosledi blokirana, tj. igrac ne moze vise da pomera tu figuru
     def _proveri_blokirana_pozicija(self, pozicija):
         putanje = self._moguce_putanje
 
@@ -172,6 +185,10 @@ class Igra:
         self._tabla[pozicija] = self._slobodno_polje
         return True
 
+    def set_igraci(self, igrac1, igrac2):
+        self._igrac1 = igrac1
+        self._igrac2 = igrac2
+
     # Iscrtavanje table na ekran
     def nacrtaj_tablu(self):
         tabla = [
@@ -206,21 +223,22 @@ class Igra:
     def _potez_beli(self, pozicija):
         if self.proveri_micu(self._igrac1.oznaka, pozicija):
             self.nacrtaj_tablu()
-            poz_pojedi = self._igrac1.pojedi_figuru(pozicija)
+            poz_pojedi = self._igrac1.pojedi_figuru()
+            if poz_pojedi == -1:
+                return
             self.ukloni_igraca(self._igrac1.oznaka, poz_pojedi)
 
     # Metode koje se pozivaju ukoliko je sastavljena mica za crnog igraca
     def _potez_crni(self, pozicija):
         if self.proveri_micu(self._igrac2.oznaka, pozicija):
             self.nacrtaj_tablu()
-            poz_pojedi = self._igrac2.pojedi_figuru(pozicija)
+            poz_pojedi = self._igrac2.pojedi_figuru()
+            if poz_pojedi == -1:
+                return
             self.ukloni_igraca(self._igrac2.oznaka, poz_pojedi)
 
     # FAZA 1: Odavde pocinje igra. Postavljanje figura. Ova faza traje maksimalno 18 poteza.
-    def postavi_figure(self, igrac1, igrac2):
-        self._igrac1 = igrac1
-        self._igrac2 = igrac2
-
+    def postavi_figure(self):
         self.nacrtaj_tablu()
 
         for potez in range(18):
@@ -237,13 +255,10 @@ class Igra:
 
         self.pomeraj_figure() # Pozivanje Faze 2
 
-    # FAZA 2: 
-    def pomeraj_figure(self, igrac1, igrac2):
-        self._igrac1 = igrac1
-        self._igrac2 = igrac2
-
+    # FAZA 2: Pomeranje figura
+    def pomeraj_figure(self):
         potez = 0
-        while not self._proveri_mogucnost_skakanja():
+        while not self.proveri_kraj_igre():
             if potez % 2 == 0: # Beli igrac je na potezu
                 pozicija = self._igrac1.pomeri_figuru()
                 self._potez_beli(pozicija)
@@ -254,11 +269,10 @@ class Igra:
             self.nacrtaj_tablu()
             potez += 1
 
-        # TODO: poziv Faze 3
+        self._kraj()
 
-
-
-
+    def _kraj(self):
+        print("\nPobednik je: ", self._pobednik)
 
 if __name__ == "__main__":
     print("\n\n\t---===   MICE   ===---\n\n")
@@ -266,8 +280,10 @@ if __name__ == "__main__":
     igra = Igra()
     igrac1 = Covek('W', igra)
     igrac2 = Ai('B', igra)
-    #igra.postavi_figure(igrac1, igrac2)
+    igra.set_igraci(igrac1, igrac2)
+    igra.postavi_figure()
 
+    '''
     igra._tabla[4] = 'B'
     igra._tabla[6] = 'B'
     igra._tabla[9] = 'B'
@@ -286,3 +302,4 @@ if __name__ == "__main__":
     
     igra.nacrtaj_tablu()
     igra.pomeraj_figure(igrac1, igrac2)
+    '''
