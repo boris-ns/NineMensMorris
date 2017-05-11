@@ -1,12 +1,16 @@
 class Covek:
+    """
+    Klasa koja omogucuje interakciju aplikacije i korisnika
+    """
+
     def __init__(self, oznaka, game_instance):
         self.oznaka = oznaka
-        self._oznaka_protivnik = 'B' if oznaka == 'W' else 'W'
-        self.broj_figura = 9
         self._game_instance = game_instance
-
+        self.broj_figura = 9
+        self._oznaka_protivnik = 'B' if oznaka == 'W' else 'W'
         self._broj_figura_postavjlanje = self.broj_figura
 
+    # Postavlja figuru na tablu i vraca poziciju na kojoj je postavljen
     def postavi_figuru(self):
         while True:
             try:
@@ -26,6 +30,7 @@ class Covek:
 
             print("Ne mozete zauzeti polje ", pozicija)
 
+    # Pomera figuru sa stare na novu poziciju i vraca novu poziciju
     def pomeri_figuru(self):
         while True:
             try:
@@ -40,6 +45,7 @@ class Covek:
 
             print("Ne mozete pomeriti figuru na polje ", nova_pozicija)
 
+    # Uklanja figuru sa table i vraca poziciju sa koje je figura uklonjena
     def pojedi_figuru(self):
         while True:
             if not self._game_instance.sve_u_mici(self._oznaka_protivnik):

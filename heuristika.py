@@ -1,4 +1,8 @@
 class Heuristika:
+    """
+    Klasa za sa potrebnim uslovima za izracunavanje heuristike.
+    Rezultat heuristike je linearna funkcija.
+    """
     def __init__(self, game_instance):
         self._game_instance = game_instance
     
