@@ -5,6 +5,9 @@ class Human:
     Attributes:
         mark (char): User mark
         game_instance (Game): game object
+        num_of_figures (int): number of players (users) figures
+        opponent_mark (char): opponents mark
+        num_left_over_figures (int): number of figures to place on table
     """
 
     def __init__(self, mark, game_instance):
@@ -34,7 +37,7 @@ class Human:
                 continue
 
             # TODO: Move to Game class
-            if self.game_instance.postavi_igraca(self.mark, position):
+            if self.game_instance.place_figure_on_table(self.mark, position):
                 self.num_left_over_figures -= 1
                 return position
 
@@ -55,7 +58,7 @@ class Human:
                 print("You entered wrong value!")
                 continue
             
-            if self.game_instance.pomeri_igraca(self.mark, old_position, new_position):
+            if self.game_instance.move_player(self.mark, old_position, new_position):
                 return new_position
 
             print("You can't move figure to  ", new_position)
@@ -68,7 +71,7 @@ class Human:
             position (int): position of removed figure
         """
         while True:
-            if not self.game_instance.sve_u_mici(self.opponent_mark):
+            if not self.game_instance.all_in_morris(self.opponent_mark):
                 return -1
 
             try:
@@ -77,7 +80,7 @@ class Human:
                 print("You entered wrong value!")
                 continue
 
-            if self.game_instance.ukloni_igraca(self.mark, position):
+            if self.game_instance.eat_figure(self.mark, position):
                 return position
 
             print("You can't remove figure on position ", position)

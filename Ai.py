@@ -1,51 +1,81 @@
-from heuristika import Heuristika 
+from Heuristics import Heuristics 
 
 class Ai:
-    def __init__(self, oznaka, game_instance):
-        self.oznaka = oznaka
-        self.broj_figura = 9
+    """
+    Class for handling computers inputs. Minimax algorithm + Alpha Beta pruning.
+
+    Attributes:
+        mark (char): players mark
+        num_of_figures (int): number of figures
+        _game_instance (Game): game object
+        _opponent_mark (char): opponents mark
+        _num_of_left_over_figures (int): number of figures to place on table
+        DEPTH (int): depth for minimax tree
+    """
+
+    def __init__(self, mark, game_instance):
+        """
+        Args:
+            mark (char): players (AI) mark
+            game_instance (Game): game object
+        """
+        self.mark = mark
+        self.num_of_figures = 9
         self._game_instance = game_instance
-        self._oznaka_protivnik = 'B' if oznaka == 'W' else 'W'
-        self._he = Heuristika(game_instance)
-        self._postavljenje_figure = 9
+        self._opponent_mark = 'B' if mark == 'W' else 'W'
+        self._he = Heuristics(game_instance)
+        self._num_of_left_over_figures = 9
         self.DEPTH = 3
 
-    def __nadji_oznaku_protivnika(self, oznaka):
-        if oznaka == self.oznaka:
-            return self._oznaka_protivnik
+    def _find_opponents_mark(self, mark):
+        """
+        Returns opponents mark based on another players mark.
+        """
+        if mark == self.mark:
+            return self._opponent_mark
         else:
-            return self.oznaka
+            return self.mark
 
-    # FAZA 1: Minimax za postavljanje figura
-    def _minimax_postavi(self, depth, alpha, beta, oznaka):
-        slobodna_polja = self._game_instance.nadji_slobodna_polja()
-        poz_pojedi = None
-        oznaka_protivnik = self.__nadji_oznaku_protivnika(oznaka)
+    def _minimax_phase1(self, depth, alpha, beta, mark):
+        """
+        Minimax algorithm + Alpha beta pruning for phase 1. Recursive.
 
-        for i in slobodna_polja:
-            self._game_instance.postavi_igraca(oznaka, i)
+        Args:
+            depth (int): depth of minimax tree
+            alpha (int): alpha value for alpha-beta pruning
+            beta (int): beta value for alpha-beta pruning
+            mark (char): players mark
+        Return:
+            (int): value of current game state
+        """
+        free_positions = self._game_instance.find_free_positions()
+        position_to_eat = None
+        opponents_mark = self._find_opponents_mark(mark)
+
+        for i in free_positions:
+            self._game_instance.place_figure_on_table(mark, i)
             
-            if self.proveri_micu(oznaka, i):
-                poz_pojedi = self._pojedi_figuru(oznaka_protivnik)
-                if poz_pojedi != None:
-                    self._game_instance.oslobodi_polje(poz_pojedi)
+            if self.check_closed_morris(mark, i):
+                position_to_eat = self._eat_figure(opponents_mark)
+                if position_to_eat != None:
+                    self._game_instance.free_position(position_to_eat)
             
             if depth == 0:
-                heuristika = self._he.heuristika_postavljanje(i, self.oznaka, self._oznaka_protivnik)  
-                self._game_instance.oslobodi_polje(i)
+                heuristics = self._he.heuristics_placing(i, self.mark, self._opponent_mark)
+                self._game_instance.free_position(i)
 
-                if poz_pojedi != None:
-                    self._game_instance.postavi_igraca(oznaka_protivnik, poz_pojedi)
+                if position_to_eat != None:
+                    self._game_instance.place_figure_on_table(opponents_mark, position_to_eat)
 
-                return heuristika
+                return heuristics
             else: 
-                vrednost = self._minimax_postavi(depth - 1, alpha, beta, oznaka_protivnik)
-                self._game_instance.oslobodi_polje(i)
+                vrednost = self._minimax_phase1(depth - 1, alpha, beta, opponents_mark)
+                self._game_instance.free_position(i)
 
-                if poz_pojedi != None:
-                    self._game_instance.postavi_igraca(oznaka_protivnik, poz_pojedi)
+                if position_to_eat != None:
+                    self._game_instance.place_figure_on_table(opponents_mark, position_to_eat)
 
-                if oznaka == self.oznaka:
+                if mark == self.mark:
                     if vrednost > alpha:
                         alpha = vrednost
                     if alpha >= beta:
@@ -56,93 +86,120 @@ class Ai:
                     if beta <= alpha: 
                         return alpha  
 
-        if oznaka == self.oznaka:
+        if mark == self.mark:
             return alpha
         else:
             return beta
 
-    def postavi_figuru(self):
+    def place_figure(self):
+        """
+        Finds best move for Ai to place the figure on the table by calling minimax algorithm for every free position.
+
+        Return:
+            position (int): best position on table to place figure
+        """
         a = -10000
-        slobodna_polja = self._game_instance.nadji_slobodna_polja()
-        potezi = []
+        free_positions = self._game_instance.find_free_positions()
+        moves = []
 
-        for i in slobodna_polja:
-            self._game_instance.postavi_igraca(self.oznaka, i)   
+        for i in free_positions:
+            self._game_instance.place_figure_on_table(self.mark, i)
 
-            vrednost = self._minimax_postavi(self.DEPTH, -10000, 10000, self._oznaka_protivnik)
-            self._game_instance.oslobodi_polje(i)
+            vrednost = self._minimax_phase1(self.DEPTH, -10000, 10000, self._opponent_mark)
+            self._game_instance.free_position(i)
             
             if vrednost > a:
                 a = vrednost
-                potezi = [i]
+                moves = [i]
             elif vrednost == a:
-                potezi.append(i)
+                moves.append(i)
             
         import random
-        pozicija = random.choice(potezi)
+        position = random.choice(moves)
 
-        print("\n[AI] Zauzeo sam ", pozicija)
-        self._postavljenje_figure -= 1
-        return pozicija
+        print("\n[AI] I placed figure on ", position)
+        self._num_of_left_over_figures -= 1
+        return position
 
-    def _proveri_blokiran(self, pozicija):
-        putanje = self._game_instance._moguce_putanje
+    def _check_if_blocked(self, position):
+        """
+        Checks if passed position of figure is blocked so it can't be moved anywhere else. Returns true/false.
+        """
+        routes = self._game_instance._possible_routes
 
-        for i in putanje[pozicija]:
-            if self._game_instance._tabla[i] == 'X':
+        for i in routes[position]:
+            if self._game_instance._table[i] == 'X':
                 return False
 
         return True
     
-    def _nadji_moguca_polja(self, stara_pozicija):
-        putanje = self._game_instance._moguce_putanje
-        moguce_putanje = []
+    def _find_possible_positions(self, old_positions):
+        """
+        Return array of positions where figure on old_position can be moved.
 
-        for i in putanje[stara_pozicija]:
-            if self._game_instance._tabla[i] == 'X':
-                moguce_putanje.append(i)
+        Args:
+            old_position (int): old_position of figure to be moved somewhere
+        Return:
+            possible_positions (int[]): array of posible positions
+        """
+        routes = self._game_instance._possible_routes
+        possible_positions = []
 
-        return moguce_putanje
+        for i in routes[old_positions]:
+            if self._game_instance._table[i] == 'X':
+                possible_positions.append(i)
 
-    # FAZA 2: Minimax za pomeranje figura
-    def _minimax_pomeri(self, depth, alpha, beta, oznaka):
-        zauzeta_polja = self._game_instance.nadji_zauzeta_polja(oznaka)
-        poz_pojedi = None
-        oznaka_protivnik = self.__nadji_oznaku_protivnika(oznaka)
+        return possible_positions
 
-        for i in zauzeta_polja:
-            if self._proveri_blokiran(i): # Ako je igrac blokiran nastavi na obradu sledeceg
+    def _minimax_phase2(self, depth, alpha, beta, mark):
+        """
+        Minimax algorithm + Alpha beta pruning for phase 2. Recursive.
+
+        Args:
+            depth (int): depth of minimax tree
+            alpha (int): alpha value for alpha-beta pruning
+            beta (int): beta value for alpha-beta pruning
+            mark (char): players mark
+        Return:
+            (int): value of current game state
+        """
+        occupied_positions = self._game_instance.find_occupied_positions(mark)
+        position_to_eat = None
+        opponents_mark = self._find_opponents_mark(mark)
+
+        for i in occupied_positions:
+            if self._check_if_blocked(i):
                 continue
             
-            moguca_polja = self._nadji_moguca_polja(i)
+            possible_positions = self._find_possible_positions(i)
 
-            for j in moguca_polja:
-                self._game_instance.oslobodi_polje(i)
-                self._game_instance.postavi_igraca(oznaka, j)
+            for j in possible_positions:
+                self._game_instance.free_position(i)
+                self._game_instance.place_figure_on_table(mark, j)
 
-                if self.proveri_micu(oznaka, j):
-                    poz_pojedi = self._pojedi_figuru(oznaka_protivnik)
-                    if poz_pojedi != None:
-                        self._game_instance.oslobodi_polje(poz_pojedi)
+                if self.check_closed_morris(mark, j):
+                    position_to_eat = self._eat_figure(opponents_mark)
+                    if position_to_eat != None:
+                        self._game_instance.free_position(position_to_eat)
 
                 if depth == 0:
-                    heuristika = self._he.heuristika_pomeranje(j, self.oznaka, self._oznaka_protivnik)
-                    self._game_instance.oslobodi_polje(j)
-                    self._game_instance.postavi_igraca(oznaka, i)
+                    heuristics = self._he.heuristics_moving(j, self.mark, self._opponent_mark)
+                    self._game_instance.free_position(j)
+                    self._game_instance.place_figure_on_table(mark, i)
 
-                    if poz_pojedi != None:
-                        self._game_instance.postavi_igraca(oznaka_protivnik, poz_pojedi)
+                    if position_to_eat != None:
+                        self._game_instance.place_figure_on_table(opponents_mark, position_to_eat)
 
-                    return heuristika
+                    return heuristics
                 else:
-                    vrednost = self._minimax_pomeri(depth - 1, alpha, beta, oznaka_protivnik)
-                    self._game_instance.oslobodi_polje(j)
-                    self._game_instance.postavi_igraca(oznaka, i)     
+                    vrednost = self._minimax_phase2(depth - 1, alpha, beta, opponents_mark)
+                    self._game_instance.free_position(j)
+                    self._game_instance.place_figure_on_table(mark, i)
 
-                    if poz_pojedi != None:
-                        self._game_instance.postavi_igraca(oznaka_protivnik, poz_pojedi)             
+                    if position_to_eat != None:
+                        self._game_instance.place_figure_on_table(opponents_mark, position_to_eat)
 
-                    if oznaka == self.oznaka:
+                    if mark == self.mark:
                         if vrednost > alpha:
                             alpha = vrednost
                         if alpha >= beta:
@@ -153,123 +210,112 @@ class Ai:
                         if beta <= alpha:
                             return alpha
 
-        if oznaka == self.oznaka:
+        if mark == self.mark:
             return alpha
         else:
             return beta
 
-    def pomeri_figuru(self):
-        a = -10000
-        zauzeta_polja = self._game_instance.nadji_zauzeta_polja(self.oznaka)
-        potez = None
-        stara_pozicija = None
+    def move_figure(self):
+        """
+        Finds best move for Ai to move the figure on the table by calling minimax algorithm for every figure.
 
-        for i in zauzeta_polja:
-            if self._proveri_blokiran(i):
+        Return:
+            move_position (int): best position on table to move figure
+        """
+        a = -10000
+        occupied_positions = self._game_instance.find_occupied_positions(self.mark)
+        move_position = None
+        old_position = None
+
+        for i in occupied_positions:
+            if self._check_if_blocked(i):
                 continue
 
-            moguca_polja = self._nadji_moguca_polja(i)
+            possible_positions = self._find_possible_positions(i)
 
-            for j in moguca_polja:
-                self._game_instance.oslobodi_polje(i)
-                self._game_instance.postavi_igraca(self.oznaka, j)  
+            for j in possible_positions:
+                self._game_instance.free_position(i)
+                self._game_instance.place_figure_on_table(self.mark, j)
 
-                vrednost = self._minimax_pomeri(self.DEPTH, -10000, 10000, self._oznaka_protivnik)
+                value = self._minimax_phase2(self.DEPTH, -10000, 10000, self._opponent_mark)
 
-                self._game_instance.oslobodi_polje(j)
-                self._game_instance.postavi_igraca(self.oznaka, i)
+                self._game_instance.free_position(j)
+                self._game_instance.place_figure_on_table(self.mark, i)
 
-                if vrednost > a:
-                    a = vrednost
-                    potez = j
-                    stara_pozicija = i
-                #elif vrednost == a:
-                    #potezi.append(i)
-                    #stara_pozicija = i
+                if value > a:
+                    a = value
+                    move_position = j
+                    old_position = i
                 
-        print("\n[AI] Pomerio sam figuru sa " + str(stara_pozicija) + " na " + str(potez))
-        self._game_instance.pomeri_igraca(self.oznaka, stara_pozicija, potez)
-        return potez
+        print("\n[AI] I moved figure from " + str(old_position) + " to " + str(move_position))
+        self._game_instance.move_player(self.mark, old_position, move_position)
+        return move_position
 
-    # Metoda za proveru da li je napravljena mica za prosledjenog igraca
-    def proveri_micu(self, oznaka_igraca, poslednja_pozicija):
-        for i, j, k in self._game_instance._moguce_mice:
-            if i == poslednja_pozicija or j == poslednja_pozicija or k == poslednja_pozicija:
-                if self._game_instance._tabla[i] == self._game_instance._tabla[j] == self._game_instance._tabla[k] and self._game_instance._tabla[i] == oznaka_igraca:
+    def check_closed_morris(self, mark, last_position):
+        """
+        Checks if a player closed morris in the last move.
+
+        Args:
+            mark (char): player mark
+            last_position (int): last position
+        Return:
+            (bool): returns if morris is closed or not
+        """
+        for i, j, k in self._game_instance._possible_morrises:
+            if i == last_position or j == last_position or k == last_position:
+                if self._game_instance._table[i] == self._game_instance._table[j] == self._game_instance._table[k] and self._game_instance._table[i] == mark:
                     return True
 
         return False
 
-    '''
-    # Nalazi poziciju 2 figure u redu, i vraca poz. jednu od njih da bi ih pojeo, sprecavanje moguce mice
-    def _moguca_mica_pojedi(self):
-        mice = self._game_instance._moguce_mice
-        tabla = self._game_instance._tabla
-        import random
-        for i, j, k in mice:
-            if tabla[i] == tabla[j] == self._oznaka_protivnik and tabla[k] == 'X' and not self.proveri_micu(self._oznaka_protivnik, i) and not self.proveri_micu(self._oznaka_protivnik, j):   
-                return random.choice([i, j])
-            elif tabla[i] == tabla[k] == self._oznaka_protivnik and tabla[j] == 'X' and not self.proveri_micu(self._oznaka_protivnik, i) and not self.proveri_micu(self._oznaka_protivnik, k):
-                return random.choice([i,k])
-            elif tabla[j] == tabla[k] == self._oznaka_protivnik and tabla[i] == 'X' and not self.proveri_micu(self._oznaka_protivnik, j) and not self.proveri_micu(self._oznaka_protivnik, k):
-                return random.choice([j,k])
+    def _find_opponents_positions(self, opponent_mark):
+        """
+        Returns array of opponents positions on the table.
+        """
+        table = self._game_instance._table
+        opponent_positions = []
 
-        return None
+        for i in range(0, len(table)):
+            if table[i] == opponent_mark and not self.check_closed_morris(opponent_mark, i):
+                opponent_positions.append(i)
 
-    def _nadji_random_poziciju_pojedi(self):
-        from random import randint
-        tabla = self._game_instance._tabla
-        protivnik_pozicije = []
-        
-        for i in range(0, len(tabla)):
-            if tabla[i] == self._oznaka_protivnik and not self.proveri_micu(self._oznaka_protivnik, i):
-                protivnik_pozicije.append(i)
+        return opponent_positions
 
-        return protivnik_pozicije[randint(0, len(protivnik_pozicije) - 1)]
-    
-    def pojedi_figuru(self):
-        moguca_mica = self._moguca_mica_pojedi()
-        random_pozicija = self._nadji_random_poziciju_pojedi()
+    def _eat_figure(self, opponents_mark):
+        """
+        Runs heuristics for possible figures to eat and chooses which one to eat.
 
-        if moguca_mica != None:
-            print("\n[AI] Pojeo sam figuru sa pozicije " + str(moguca_mica))
-            return moguca_mica
-        else:
-            print("\n[AI] Pojeo sam figuru sa pozicije " + str(random_pozicija))
-            return random_pozicija
-    '''
+        Args:
+            opponents_mark (char): opponents mark
+        Return:
+            positions (int): best position to eat
+        """
+        opponents_positions = self._find_opponents_positions(opponents_mark)
+        max_score = None
+        position = None
 
-    def _nadji_pozicije_protivnika(self, oznaka_protivnik):
-        tabla = self._game_instance._tabla
-        protivnik_pozicije = []
+        for i in opponents_positions:
+            self._game_instance.free_position(i)
+            score = self._he.heuristics_eat_figure(self.mark, self._opponent_mark)
+            self._game_instance.place_figure_on_table(opponents_mark, i)
 
-        for i in range(0, len(tabla)):
-            if tabla[i] == oznaka_protivnik and not self.proveri_micu(oznaka_protivnik, i):
-                protivnik_pozicije.append(i)
-
-        return protivnik_pozicije
-
-    def _pojedi_figuru(self, oznaka_protivnik):
-        protivnik_pozicije = self._nadji_pozicije_protivnika(oznaka_protivnik)
-        max_ocena = None
-        pozicija = None
-
-        for i in protivnik_pozicije:
-            self._game_instance.oslobodi_polje(i)
-            ocena = self._he.heuristika_pojedi(self.oznaka, self._oznaka_protivnik)
-            self._game_instance.postavi_igraca(oznaka_protivnik, i)
-
-            if max_ocena == None or ocena > max_ocena:
-                max_ocena = ocena
-                pozicija = i
+            if max_score == None or score > max_score:
+                max_score = score
+                position = i
             
-        return pozicija
+        return position
 
-    def pojedi_figuru(self):
-        pozicija = self._pojedi_figuru(self._oznaka_protivnik)
-        print("\n[AI] Pojeo sam figuru sa pozicije " + str(pozicija))
+    def eat_figure(self):
+        """
+        Eats figure from table.
 
-        if pozicija == None:
+        Return:
+            position (int): position to eat figure or -1 if there is not any figure to eat
+        """
+        positions = self._eat_figure(self._opponent_mark)
+        print("\n[AI] I ate figure from " + str(positions))
+
+        if positions == None:
             return -1
 
-        return pozicija
+        return positions
